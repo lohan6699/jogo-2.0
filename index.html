@@ -6,14 +6,8 @@
   <title>Pega Frutas</title>
   <style>
     :root {
-      --sky: #7ec8e3;
-      --sky-deep: #4aa3c7;
-      --grass: #6fbf73;
-      --grass-dark: #4e9a53;
-      --basket: #c47a3a;
-      --basket-dark: #8b5424;
-      --ink: #2b3a42;
-      --panel: rgba(255, 255, 255, 0.92);
+      --ink: #24343c;
+      --panel: rgba(255, 255, 255, 0.94);
     }
 
     * {
@@ -28,7 +22,7 @@
       height: 100%;
       overflow: hidden;
       font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-      background: #1b2a32;
+      background: #152228;
       color: var(--ink);
     }
 
@@ -40,11 +34,11 @@
 
     #wrap {
       width: min(440px, 100vw);
-      height: min(740px, 100dvh);
+      height: min(760px, 100dvh);
       position: relative;
       overflow: hidden;
-      background: linear-gradient(#8fd3ee 0%, var(--sky) 55%, #b7e3a3 78%, var(--grass) 78%);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+      background: linear-gradient(#8fd4f0 0%, #7ec8e3 48%, #c8e9a8 74%, #6fbf73 74%);
+      box-shadow: 0 16px 50px rgba(0, 0, 0, 0.4);
     }
 
     canvas {
@@ -62,129 +56,161 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      pointer-events: none;
+      gap: 8px;
       z-index: 2;
+      pointer-events: none;
     }
 
     .pill {
       background: var(--panel);
       border-radius: 999px;
-      padding: 8px 14px;
-      font-weight: 700;
-      font-size: 16px;
+      padding: 8px 12px;
+      font-weight: 800;
+      font-size: 15px;
       box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
+      white-space: nowrap;
     }
 
-    .lives {
-      letter-spacing: 2px;
+    .hud-right {
+      display: flex;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border: 0;
+      border-radius: 50%;
+      background: var(--panel);
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
+      cursor: pointer;
       font-size: 18px;
+      display: grid;
+      place-items: center;
+    }
+
+    .combo {
+      position: absolute;
+      top: 62px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 28px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 3px 0 rgba(0, 0, 0, 0.18);
+      opacity: 0;
+      transform: scale(0.8);
+      transition: 0.15s;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .combo.show {
+      opacity: 1;
+      transform: scale(1);
     }
 
     .overlay {
       position: absolute;
       inset: 0;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(20, 40, 50, 0.28);
-      backdrop-filter: blur(3px);
-      z-index: 3;
-      padding: 24px;
+      background: rgba(18, 36, 46, 0.32);
+      backdrop-filter: blur(4px);
+      z-index: 4;
+      padding: 20px;
       text-align: center;
     }
 
-    .overlay.hidden {
-      display: none;
-    }
+    .overlay.hidden { display: none; }
 
     .card {
       background: var(--panel);
       border-radius: 28px;
-      padding: 28px 22px 24px;
-      width: min(340px, 92%);
-      box-shadow: 0 16px 0 rgba(0, 0, 0, 0.08);
+      padding: 26px 20px 22px;
+      width: min(340px, 94%);
+      box-shadow: 0 14px 0 rgba(0, 0, 0, 0.08);
     }
 
     h1 {
-      font-size: 34px;
+      font-size: 32px;
       line-height: 1.1;
       margin-bottom: 6px;
     }
 
-    .subtitle {
-      color: #4d6670;
-      margin-bottom: 18px;
-      font-size: 15px;
-    }
+    .subtitle, .hint { color: #4d6670; font-size: 15px; }
+    .subtitle { margin-bottom: 10px; }
+    .hint { margin-top: 8px; font-size: 13px; }
+    .score-big { font-size: 48px; margin: 6px 0 2px; }
 
-    .score-big {
-      font-size: 44px;
-      margin: 8px 0 4px;
-    }
-
-    .hint {
+    .howto {
+      display: grid;
+      gap: 6px;
+      text-align: left;
+      margin: 14px 0 4px;
       font-size: 14px;
-      color: #4d6670;
-      margin-top: 8px;
     }
 
-    button {
-      margin-top: 18px;
+    button.main {
+      margin-top: 16px;
       border: 0;
       background: #ff8a3d;
-      color: white;
+      color: #fff;
       font-size: 20px;
       font-weight: 800;
-      padding: 14px 28px;
+      padding: 13px 28px;
       border-radius: 999px;
       cursor: pointer;
       box-shadow: 0 6px 0 #d66a22;
       font-family: inherit;
     }
 
-    button:active {
+    button.main:active {
       transform: translateY(3px);
       box-shadow: 0 3px 0 #d66a22;
     }
 
-    .clouds {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      overflow: hidden;
-      z-index: 0;
-    }
-
-    .cloud {
-      position: absolute;
-      background: rgba(255, 255, 255, 0.75);
-      border-radius: 40px;
-      filter: blur(0.2px);
-    }
+    .paused-title { font-size: 28px; margin-bottom: 8px; }
   </style>
 </head>
 <body>
   <div id="wrap">
-    <div class="clouds" aria-hidden="true">
-      <div class="cloud" style="width:90px;height:34px;top:8%;left:8%"></div>
-      <div class="cloud" style="width:120px;height:40px;top:16%;right:6%"></div>
-      <div class="cloud" style="width:70px;height:26px;top:28%;left:38%"></div>
-    </div>
-
     <div class="hud">
-      <div class="pill" id="scorePill">Pontos: 0</div>
-      <div class="pill lives" id="livesPill">❤️❤️❤️</div>
+      <div>
+        <div class="pill" id="scorePill">Pontos: 0</div>
+      </div>
+      <div class="hud-right">
+        <div class="pill" id="livesPill">❤️❤️❤️</div>
+        <button class="icon-btn" id="soundBtn" title="Som">🔊</button>
+        <button class="icon-btn" id="pauseBtn" title="Pausar">⏸️</button>
+      </div>
     </div>
-
+    <div class="combo" id="comboText"></div>
     <canvas id="game"></canvas>
 
     <div class="overlay" id="startScreen">
       <div class="card">
         <h1>🍎 Pega Frutas</h1>
-        <p class="subtitle">Pegue as frutas e fuja das pedras. Fácil de jogar, difícil de parar!</p>
-        <p class="hint">← → ou arraste para mover a cesta</p>
-        <button id="startBtn">Jogar</button>
+        <p class="subtitle">Fácil de jogar. Difícil de largar.</p>
+        <div class="howto">
+          <div>🍎🍌🍓 Pegue as frutas</div>
+          <div>🪨 Desvie das pedras</div>
+          <div>💛 Coração dá vida extra</div>
+          <div>⭐ Estrela vale muitos pontos</div>
+        </div>
+        <p class="hint">Setas, A/D ou arraste o dedo</p>
+        <button class="main" id="startBtn">Jogar</button>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="pauseScreen">
+      <div class="card">
+        <div class="paused-title">⏸️ Pausado</div>
+        <p class="hint">O jogo está parado</p>
+        <button class="main" id="resumeBtn">Continuar</button>
       </div>
     </div>
 
@@ -192,8 +218,9 @@
       <div class="card">
         <h1>Fim de jogo</h1>
         <div class="score-big" id="finalScore">0</div>
+        <p>Melhor combo: <strong id="bestCombo">0</strong></p>
         <p>Recorde: <strong id="bestScore">0</strong></p>
-        <button id="againBtn">Jogar de novo</button>
+        <button class="main" id="againBtn">Jogar de novo</button>
       </div>
     </div>
   </div>
@@ -204,24 +231,23 @@
     const wrap = document.getElementById("wrap");
     const scorePill = document.getElementById("scorePill");
     const livesPill = document.getElementById("livesPill");
+    const comboText = document.getElementById("comboText");
     const startScreen = document.getElementById("startScreen");
+    const pauseScreen = document.getElementById("pauseScreen");
     const overScreen = document.getElementById("overScreen");
-    const finalScore = document.getElementById("finalScore");
-    const bestScore = document.getElementById("bestScore");
+    const soundBtn = document.getElementById("soundBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
 
-    const FRUITS = ["🍎", "🍌", "🍇", "🍓", "🍊", "🍉", "🍒", "🥝"];
-    const BAD = "🪨";
+    const FRUITS = ["🍎", "🍌", "🍇", "🍓", "🍊", "🍉", "🍒", "🥝", "🍑"];
 
     let W = 0, H = 0, dpr = 1;
-    let running = false;
-    let score = 0;
-    let lives = 3;
-    let basketX = 0.5;
-    let items = [];
-    let spawnTimer = 0;
-    let last = 0;
+    let running = false, paused = false, muted = false;
+    let score = 0, lives = 3, combo = 0, maxCombo = 0;
+    let basketX = 0.5, basketTarget = 0.5;
+    let items = [], pops = [], parts = [], clouds = [];
+    let spawnTimer = 0, last = 0, shake = 0, time = 0;
     let keys = { left: false, right: false };
-    let combo = 0;
+    let audioCtx = null;
 
     function resize() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -234,84 +260,184 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    function best() {
+    function getBest() {
       return Number(localStorage.getItem("pegaFrutasBest") || 0);
     }
-
     function saveBest() {
-      if (score > best()) localStorage.setItem("pegaFrutasBest", String(score));
+      if (score > getBest()) localStorage.setItem("pegaFrutasBest", String(score));
+    }
+
+    function ensureAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+    }
+
+    function beep(freq, dur, type, vol, slide) {
+      if (muted || !audioCtx) return;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = type || "sine";
+      o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      if (slide) o.frequency.exponentialRampToValueAtTime(slide, audioCtx.currentTime + dur);
+      g.gain.setValueAtTime(vol || 0.06, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + dur);
+    }
+
+    function sfx(kind) {
+      if (kind === "catch") beep(520 + combo * 20, 0.12, "triangle", 0.07, 740);
+      if (kind === "star") { beep(660, 0.1, "sine", 0.07, 880); setTimeout(() => beep(990, 0.16, "sine", 0.06), 80); }
+      if (kind === "heart") beep(420, 0.18, "sine", 0.07, 680);
+      if (kind === "bad") beep(180, 0.22, "square", 0.05, 90);
+      if (kind === "miss") beep(240, 0.14, "sawtooth", 0.03, 120);
+      if (kind === "over") { beep(300, 0.2, "triangle", 0.06, 160); setTimeout(() => beep(180, 0.35, "triangle", 0.05, 90), 160); }
+      if (kind === "start") beep(400, 0.1, "sine", 0.05, 640);
     }
 
     function reset() {
-      score = 0;
-      lives = 3;
-      combo = 0;
-      items = [];
-      spawnTimer = 0;
-      basketX = 0.5;
+      score = 0; lives = 3; combo = 0; maxCombo = 0;
+      items = []; pops = []; parts = [];
+      spawnTimer = 0.2; basketX = 0.5; basketTarget = 0.5; shake = 0; time = 0;
       updateHud();
+      showCombo(false);
     }
 
     function updateHud() {
       scorePill.textContent = "Pontos: " + score;
-      livesPill.textContent = "❤️".repeat(lives) + "🤍".repeat(Math.max(0, 3 - lives));
+      livesPill.textContent = "❤️".repeat(Math.max(0, lives)) + "🤍".repeat(Math.max(0, 3 - lives));
+    }
+
+    function showCombo(on) {
+      if (on && combo >= 3) {
+        comboText.textContent = "Combo x" + combo + "!";
+        comboText.classList.add("show");
+      } else {
+        comboText.classList.remove("show");
+      }
+    }
+
+    function makeClouds() {
+      clouds = [];
+      for (let i = 0; i < 5; i++) {
+        clouds.push({
+          x: Math.random(),
+          y: 0.06 + Math.random() * 0.28,
+          s: 50 + Math.random() * 70,
+          v: 0.01 + Math.random() * 0.02
+        });
+      }
     }
 
     function spawn() {
-      const badChance = Math.min(0.18 + score / 400, 0.34);
-      const isBad = Math.random() < badChance;
+      const r = Math.random();
+      let kind = "fruit";
+      if (r < 0.16) kind = "rock";
+      else if (r < 0.19) kind = "star";
+      else if (r < 0.215 && lives < 3) kind = "heart";
+
+      const emoji = kind === "rock" ? "🪨" : kind === "star" ? "⭐" : kind === "heart" ? "💛" :
+        FRUITS[Math.floor(Math.random() * FRUITS.length)];
+
       items.push({
         x: 0.12 + Math.random() * 0.76,
         y: -0.08,
-        speed: 0.18 + Math.min(score / 220, 0.28) + Math.random() * 0.08,
-        emoji: isBad ? BAD : FRUITS[Math.floor(Math.random() * FRUITS.length)],
-        bad: isBad,
-        rot: (Math.random() - 0.5) * 0.8,
-        size: isBad ? 34 : 38
+        speed: 0.17 + Math.min(score / 280, 0.32) + Math.random() * 0.07,
+        emoji, kind,
+        rot: (Math.random() - 0.5) * 0.9,
+        size: kind === "rock" ? 34 : 40,
+        wobble: Math.random() * 6
       });
     }
 
+    function burst(x, y, color, n) {
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const sp = 40 + Math.random() * 90;
+        parts.push({
+          x, y,
+          vx: Math.cos(a) * sp,
+          vy: Math.sin(a) * sp - 30,
+          life: 0.45 + Math.random() * 0.25,
+          max: 0.7,
+          color,
+          r: 2 + Math.random() * 3
+        });
+      }
+    }
+
+    function popup(x, y, text, color) {
+      pops.push({ x, y, text, color, life: 0.8 });
+    }
+
     function basketRect() {
-      const bw = 92;
-      const bh = 38;
-      const x = basketX * W - bw / 2;
-      const y = H * 0.82;
-      return { x, y, w: bw, h: bh };
+      const bw = 100, bh = 40;
+      return { x: basketX * W - bw / 2, y: H * 0.815, w: bw, h: bh };
+    }
+
+    function endGame() {
+      running = false;
+      paused = false;
+      saveBest();
+      sfx("over");
+      document.getElementById("finalScore").textContent = score;
+      document.getElementById("bestScore").textContent = getBest();
+      document.getElementById("bestCombo").textContent = maxCombo;
+      overScreen.classList.remove("hidden");
+      pauseScreen.classList.add("hidden");
     }
 
     function update(dt) {
-      const move = (keys.left ? -1 : 0) + (keys.right ? 1 : 0);
-      basketX += move * dt * 1.35;
-      basketX = Math.max(0.12, Math.min(0.88, basketX));
+      time += dt;
+      shake = Math.max(0, shake - dt * 3);
 
-      const difficulty = 0.85 - Math.min(score / 500, 0.45);
+      const move = (keys.left ? -1 : 0) + (keys.right ? 1 : 0);
+      if (move) basketTarget += move * dt * 1.4;
+      basketTarget = Math.max(0.13, Math.min(0.87, basketTarget));
+      basketX += (basketTarget - basketX) * Math.min(1, dt * 14);
+
+      const rate = Math.max(0.32, 0.88 - score / 520);
       spawnTimer += dt;
-      if (spawnTimer > difficulty) {
+      if (spawnTimer > rate) {
         spawnTimer = 0;
         spawn();
+        if (score > 120 && Math.random() < 0.22) spawn();
       }
 
       const b = basketRect();
       for (let i = items.length - 1; i >= 0; i--) {
         const it = items[i];
         it.y += it.speed * dt;
-        it.rot += dt * 1.6;
-
-        const ix = it.x * W;
+        it.rot += dt * 1.8;
+        const ix = it.x * W + Math.sin(time * 3 + it.wobble) * 6;
         const iy = it.y * H;
-        const caught =
-          ix > b.x - 8 &&
-          ix < b.x + b.w + 8 &&
-          iy > b.y - 10 &&
-          iy < b.y + b.h + 16;
 
+        const caught = ix > b.x - 6 && ix < b.x + b.w + 6 && iy > b.y - 8 && iy < b.y + b.h + 18;
         if (caught) {
-          if (it.bad) {
-            lives -= 1;
-            combo = 0;
+          const cx = ix, cy = b.y;
+          if (it.kind === "rock") {
+            lives -= 1; combo = 0; shake = 0.45;
+            sfx("bad"); burst(cx, cy, "#8a7a6a", 14);
+            popup(cx, cy - 10, "Ai!", "#c0392b");
+            showCombo(false);
+          } else if (it.kind === "heart") {
+            lives = Math.min(3, lives + 1);
+            sfx("heart"); burst(cx, cy, "#ff6b8a", 16);
+            popup(cx, cy - 10, "+vida", "#e74c7a");
+          } else if (it.kind === "star") {
+            combo += 1; maxCombo = Math.max(maxCombo, combo);
+            const add = 50 + combo * 5;
+            score += add;
+            sfx("star"); burst(cx, cy, "#ffd24a", 20);
+            popup(cx, cy - 10, "+" + add, "#f39c12");
+            showCombo(true);
           } else {
-            combo += 1;
-            score += 10 + Math.min(combo, 8) * 2;
+            combo += 1; maxCombo = Math.max(maxCombo, combo);
+            const add = 10 + Math.min(combo, 10) * 2;
+            score += add;
+            sfx("catch"); burst(cx, cy, "#7bed9f", 12);
+            popup(cx, cy - 10, "+" + add, "#27ae60");
+            showCombo(true);
           }
           items.splice(i, 1);
           updateHud();
@@ -319,31 +445,65 @@
           continue;
         }
 
-        if (it.y > 1.08) {
-          if (!it.bad) {
-            lives -= 1;
-            combo = 0;
+        if (it.y > 1.1) {
+          if (it.kind === "fruit") {
+            lives -= 1; combo = 0; shake = 0.25;
+            sfx("miss");
+            popup(it.x * W, H * 0.78, "ops", "#c0392b");
+            showCombo(false);
             updateHud();
             if (lives <= 0) endGame();
           }
           items.splice(i, 1);
         }
       }
+
+      for (let i = pops.length - 1; i >= 0; i--) {
+        pops[i].life -= dt;
+        pops[i].y -= 50 * dt;
+        if (pops[i].life <= 0) pops.splice(i, 1);
+      }
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const p = parts[i];
+        p.life -= dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vy += 180 * dt;
+        if (p.life <= 0) parts.splice(i, 1);
+      }
+      clouds.forEach(c => {
+        c.x += c.v * dt * 0.15;
+        if (c.x > 1.2) c.x = -0.25;
+      });
+    }
+
+    function drawSky() {
+      clouds.forEach(c => {
+        const x = c.x * W, y = c.y * H, s = c.s;
+        ctx.fillStyle = "rgba(255,255,255,0.78)";
+        ctx.beginPath();
+        ctx.ellipse(x, y, s * 0.55, s * 0.22, 0, 0, Math.PI * 2);
+        ctx.ellipse(x - s * 0.25, y + 4, s * 0.28, s * 0.16, 0, 0, Math.PI * 2);
+        ctx.ellipse(x + s * 0.28, y + 2, s * 0.3, s * 0.17, 0, 0, Math.PI * 2);
+        ctx.fill();
+      });
     }
 
     function drawGrass() {
-      const y = H * 0.78;
-      ctx.fillStyle = "#7ec86f";
+      const y = H * 0.74;
+      const g = ctx.createLinearGradient(0, y, 0, H);
+      g.addColorStop(0, "#7ed36f");
+      g.addColorStop(1, "#4ea352");
+      ctx.fillStyle = g;
       ctx.fillRect(0, y, W, H - y);
-      ctx.fillStyle = "#5aaa58";
-      ctx.fillRect(0, y, W, 10);
-      for (let i = 0; i < 18; i++) {
-        const x = (i / 18) * W;
-        ctx.fillStyle = i % 2 ? "#68b85f" : "#57a352";
+      ctx.fillStyle = "#62b85c";
+      ctx.fillRect(0, y, W, 8);
+      ctx.fillStyle = "#57a352";
+      for (let i = -1; i < 20; i++) {
+        const x = i * 28 + (time * 8 % 28);
         ctx.beginPath();
-        ctx.moveTo(x, y + 10);
-        ctx.lineTo(x + 16, y - 8);
-        ctx.lineTo(x + 32, y + 10);
+        ctx.moveTo(x, y + 8);
+        ctx.quadraticCurveTo(x + 10, y - 12, x + 20, y + 8);
         ctx.fill();
       }
     }
@@ -351,94 +511,145 @@
     function drawBasket() {
       const b = basketRect();
       ctx.save();
-      ctx.translate(b.x + b.w / 2, b.y + 8);
+      ctx.translate(b.x + b.w / 2, b.y + 10);
+      ctx.fillStyle = "rgba(0,0,0,0.12)";
+      ctx.beginPath();
+      ctx.ellipse(0, 28, 40, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
 
-      ctx.fillStyle = "#8b5424";
-      ctx.strokeStyle = "#5c3614";
+      ctx.fillStyle = "#c9843f";
+      ctx.strokeStyle = "#6b3e16";
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(-46, -6);
-      ctx.quadraticCurveTo(0, 36, 46, -6);
-      ctx.lineTo(38, -18);
-      ctx.quadraticCurveTo(0, 16, -38, -18);
+      ctx.moveTo(-48, -8);
+      ctx.quadraticCurveTo(0, 40, 48, -8);
+      ctx.lineTo(40, -20);
+      ctx.quadraticCurveTo(0, 18, -40, -20);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
 
-      ctx.strokeStyle = "#d7a36a";
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#e2b27a";
+      ctx.lineWidth = 3.5;
       ctx.beginPath();
-      ctx.arc(0, -22, 26, Math.PI * 0.95, Math.PI * 0.05, true);
+      ctx.arc(0, -26, 28, Math.PI * 0.92, Math.PI * 0.08, true);
       ctx.stroke();
 
+      ctx.strokeStyle = "#a35d24";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-22, -6); ctx.quadraticCurveTo(0, 20, 22, -6);
+      ctx.stroke();
       ctx.restore();
     }
 
     function drawItems() {
-      for (const it of items) {
+      items.forEach(it => {
+        const x = it.x * W + Math.sin(time * 3 + it.wobble) * 6;
+        const y = it.y * H;
         ctx.save();
-        ctx.translate(it.x * W, it.y * H);
-        ctx.rotate(it.rot * 0.25);
+        ctx.fillStyle = "rgba(0,0,0,0.12)";
+        ctx.beginPath();
+        ctx.ellipse(x, y + 16, 12, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.translate(x, y);
+        ctx.rotate(it.rot * 0.22);
         ctx.font = it.size + "px serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(it.emoji, 0, 0);
         ctx.restore();
-      }
+      });
+    }
+
+    function drawFx() {
+      parts.forEach(p => {
+        ctx.globalAlpha = Math.max(0, p.life / p.max);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      pops.forEach(p => {
+        ctx.globalAlpha = Math.max(0, p.life / 0.8);
+        ctx.fillStyle = p.color;
+        ctx.font = "bold 18px Trebuchet MS, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(p.text, p.x, p.y);
+      });
+      ctx.globalAlpha = 1;
     }
 
     function draw() {
-      ctx.clearRect(0, 0, W, H);
+      ctx.save();
+      if (shake > 0) {
+        ctx.translate((Math.random() - 0.5) * 10 * shake, (Math.random() - 0.5) * 10 * shake);
+      }
+      ctx.clearRect(-20, -20, W + 40, H + 40);
+      drawSky();
       drawGrass();
       drawItems();
       drawBasket();
+      drawFx();
+      ctx.restore();
     }
 
     function loop(t) {
       if (!running) return;
       const dt = Math.min((t - last) / 1000, 0.033);
       last = t;
-      update(dt);
+      if (!paused) update(dt);
       draw();
       requestAnimationFrame(loop);
     }
 
     function startGame() {
+      ensureAudio();
+      sfx("start");
       reset();
       startScreen.classList.add("hidden");
       overScreen.classList.add("hidden");
-      running = true;
+      pauseScreen.classList.add("hidden");
+      running = true; paused = false;
       last = performance.now();
       requestAnimationFrame(loop);
     }
 
-    function endGame() {
-      running = false;
-      saveBest();
-      finalScore.textContent = score;
-      bestScore.textContent = best();
-      overScreen.classList.remove("hidden");
+    function togglePause() {
+      if (!running) return;
+      paused = !paused;
+      pauseScreen.classList.toggle("hidden", !paused);
     }
 
     function pointerToX(clientX) {
       const rect = wrap.getBoundingClientRect();
-      basketX = (clientX - rect.left) / rect.width;
-      basketX = Math.max(0.12, Math.min(0.88, basketX));
+      basketTarget = (clientX - rect.left) / rect.width;
+      basketTarget = Math.max(0.13, Math.min(0.87, basketTarget));
     }
 
     window.addEventListener("resize", resize);
     resize();
-    bestScore.textContent = best();
-    drawGrass();
-    drawBasket();
+    makeClouds();
+    document.getElementById("bestScore").textContent = getBest();
+    draw();
 
     document.getElementById("startBtn").onclick = startGame;
     document.getElementById("againBtn").onclick = startGame;
+    document.getElementById("resumeBtn").onclick = togglePause;
+    pauseBtn.onclick = togglePause;
+    soundBtn.onclick = () => {
+      muted = !muted;
+      soundBtn.textContent = muted ? "🔇" : "🔊";
+      if (!muted) ensureAudio();
+    };
 
     window.addEventListener("keydown", (e) => {
+      if (["ArrowLeft", "ArrowRight", " ", "ArrowUp", "ArrowDown"].includes(e.key)) e.preventDefault();
       if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keys.left = true;
       if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") keys.right = true;
       if ((e.key === "Enter" || e.key === " ") && !running) startGame();
+      if (e.key === "p" || e.key === "P" || e.key === "Escape") togglePause();
     });
     window.addEventListener("keyup", (e) => {
       if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keys.left = false;
@@ -446,6 +657,7 @@
     });
 
     wrap.addEventListener("pointerdown", (e) => {
+      if (e.target.closest("button")) return;
       pointerToX(e.clientX);
     });
     wrap.addEventListener("pointermove", (e) => {
