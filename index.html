@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Pega Frutas</title>
+  <style>
+    :root {
+      --sky: #7ec8e3;
+      --sky-deep: #4aa3c7;
+      --grass: #6fbf73;
+      --grass-dark: #4e9a53;
+      --basket: #c47a3a;
+      --basket-dark: #8b5424;
+      --ink: #2b3a42;
+      --panel: rgba(255, 255, 255, 0.92);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      background: #1b2a32;
+      color: var(--ink);
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #wrap {
+      width: min(440px, 100vw);
+      height: min(740px, 100dvh);
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(#8fd3ee 0%, var(--sky) 55%, #b7e3a3 78%, var(--grass) 78%);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .hud {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .pill {
+      background: var(--panel);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-weight: 700;
+      font-size: 16px;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
+    }
+
+    .lives {
+      letter-spacing: 2px;
+      font-size: 18px;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(20, 40, 50, 0.28);
+      backdrop-filter: blur(3px);
+      z-index: 3;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .overlay.hidden {
+      display: none;
+    }
+
+    .card {
+      background: var(--panel);
+      border-radius: 28px;
+      padding: 28px 22px 24px;
+      width: min(340px, 92%);
+      box-shadow: 0 16px 0 rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      font-size: 34px;
+      line-height: 1.1;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: #4d6670;
+      margin-bottom: 18px;
+      font-size: 15px;
+    }
+
+    .score-big {
+      font-size: 44px;
+      margin: 8px 0 4px;
+    }
+
+    .hint {
+      font-size: 14px;
+      color: #4d6670;
+      margin-top: 8px;
+    }
+
+    button {
+      margin-top: 18px;
+      border: 0;
+      background: #ff8a3d;
+      color: white;
+      font-size: 20px;
+      font-weight: 800;
+      padding: 14px 28px;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #d66a22;
+      font-family: inherit;
+    }
+
+    button:active {
+      transform: translateY(3px);
+      box-shadow: 0 3px 0 #d66a22;
+    }
+
+    .clouds {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .cloud {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.75);
+      border-radius: 40px;
+      filter: blur(0.2px);
+    }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <div class="clouds" aria-hidden="true">
+      <div class="cloud" style="width:90px;height:34px;top:8%;left:8%"></div>
+      <div class="cloud" style="width:120px;height:40px;top:16%;right:6%"></div>
+      <div class="cloud" style="width:70px;height:26px;top:28%;left:38%"></div>
+    </div>
+
+    <div class="hud">
+      <div class="pill" id="scorePill">Pontos: 0</div>
+      <div class="pill lives" id="livesPill">❤️❤️❤️</div>
+    </div>
+
+    <canvas id="game"></canvas>
+
+    <div class="overlay" id="startScreen">
+      <div class="card">
+        <h1>🍎 Pega Frutas</h1>
+        <p class="subtitle">Pegue as frutas e fuja das pedras. Fácil de jogar, difícil de parar!</p>
+        <p class="hint">← → ou arraste para mover a cesta</p>
+        <button id="startBtn">Jogar</button>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="overScreen">
+      <div class="card">
+        <h1>Fim de jogo</h1>
+        <div class="score-big" id="finalScore">0</div>
+        <p>Recorde: <strong id="bestScore">0</strong></p>
+        <button id="againBtn">Jogar de novo</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const wrap = document.getElementById("wrap");
+    const scorePill = document.getElementById("scorePill");
+    const livesPill = document.getElementById("livesPill");
+    const startScreen = document.getElementById("startScreen");
+    const overScreen = document.getElementById("overScreen");
+    const finalScore = document.getElementById("finalScore");
+    const bestScore = document.getElementById("bestScore");
+
+    const FRUITS = ["🍎", "🍌", "🍇", "🍓", "🍊", "🍉", "🍒", "🥝"];
+    const BAD = "🪨";
+
+    let W = 0, H = 0, dpr = 1;
+    let running = false;
+    let score = 0;
+    let lives = 3;
+    let basketX = 0.5;
+    let items = [];
+    let spawnTimer = 0;
+    let last = 0;
+    let keys = { left: false, right: false };
+    let combo = 0;
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = wrap.clientWidth;
+      H = wrap.clientHeight;
+      canvas.width = Math.floor(W * dpr);
+      canvas.height = Math.floor(H * dpr);
+      canvas.style.width = W + "px";
+      canvas.style.height = H + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function best() {
+      return Number(localStorage.getItem("pegaFrutasBest") || 0);
+    }
+
+    function saveBest() {
+      if (score > best()) localStorage.setItem("pegaFrutasBest", String(score));
+    }
+
+    function reset() {
+      score = 0;
+      lives = 3;
+      combo = 0;
+      items = [];
+      spawnTimer = 0;
+      basketX = 0.5;
+      updateHud();
+    }
+
+    function updateHud() {
+      scorePill.textContent = "Pontos: " + score;
+      livesPill.textContent = "❤️".repeat(lives) + "🤍".repeat(Math.max(0, 3 - lives));
+    }
+
+    function spawn() {
+      const badChance = Math.min(0.18 + score / 400, 0.34);
+      const isBad = Math.random() < badChance;
+      items.push({
+        x: 0.12 + Math.random() * 0.76,
+        y: -0.08,
+        speed: 0.18 + Math.min(score / 220, 0.28) + Math.random() * 0.08,
+        emoji: isBad ? BAD : FRUITS[Math.floor(Math.random() * FRUITS.length)],
+        bad: isBad,
+        rot: (Math.random() - 0.5) * 0.8,
+        size: isBad ? 34 : 38
+      });
+    }
+
+    function basketRect() {
+      const bw = 92;
+      const bh = 38;
+      const x = basketX * W - bw / 2;
+      const y = H * 0.82;
+      return { x, y, w: bw, h: bh };
+    }
+
+    function update(dt) {
+      const move = (keys.left ? -1 : 0) + (keys.right ? 1 : 0);
+      basketX += move * dt * 1.35;
+      basketX = Math.max(0.12, Math.min(0.88, basketX));
+
+      const difficulty = 0.85 - Math.min(score / 500, 0.45);
+      spawnTimer += dt;
+      if (spawnTimer > difficulty) {
+        spawnTimer = 0;
+        spawn();
+      }
+
+      const b = basketRect();
+      for (let i = items.length - 1; i >= 0; i--) {
+        const it = items[i];
+        it.y += it.speed * dt;
+        it.rot += dt * 1.6;
+
+        const ix = it.x * W;
+        const iy = it.y * H;
+        const caught =
+          ix > b.x - 8 &&
+          ix < b.x + b.w + 8 &&
+          iy > b.y - 10 &&
+          iy < b.y + b.h + 16;
+
+        if (caught) {
+          if (it.bad) {
+            lives -= 1;
+            combo = 0;
+          } else {
+            combo += 1;
+            score += 10 + Math.min(combo, 8) * 2;
+          }
+          items.splice(i, 1);
+          updateHud();
+          if (lives <= 0) endGame();
+          continue;
+        }
+
+        if (it.y > 1.08) {
+          if (!it.bad) {
+            lives -= 1;
+            combo = 0;
+            updateHud();
+            if (lives <= 0) endGame();
+          }
+          items.splice(i, 1);
+        }
+      }
+    }
+
+    function drawGrass() {
+      const y = H * 0.78;
+      ctx.fillStyle = "#7ec86f";
+      ctx.fillRect(0, y, W, H - y);
+      ctx.fillStyle = "#5aaa58";
+      ctx.fillRect(0, y, W, 10);
+      for (let i = 0; i < 18; i++) {
+        const x = (i / 18) * W;
+        ctx.fillStyle = i % 2 ? "#68b85f" : "#57a352";
+        ctx.beginPath();
+        ctx.moveTo(x, y + 10);
+        ctx.lineTo(x + 16, y - 8);
+        ctx.lineTo(x + 32, y + 10);
+        ctx.fill();
+      }
+    }
+
+    function drawBasket() {
+      const b = basketRect();
+      ctx.save();
+      ctx.translate(b.x + b.w / 2, b.y + 8);
+
+      ctx.fillStyle = "#8b5424";
+      ctx.strokeStyle = "#5c3614";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-46, -6);
+      ctx.quadraticCurveTo(0, 36, 46, -6);
+      ctx.lineTo(38, -18);
+      ctx.quadraticCurveTo(0, 16, -38, -18);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.strokeStyle = "#d7a36a";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, -22, 26, Math.PI * 0.95, Math.PI * 0.05, true);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawItems() {
+      for (const it of items) {
+        ctx.save();
+        ctx.translate(it.x * W, it.y * H);
+        ctx.rotate(it.rot * 0.25);
+        ctx.font = it.size + "px serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(it.emoji, 0, 0);
+        ctx.restore();
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      drawGrass();
+      drawItems();
+      drawBasket();
+    }
+
+    function loop(t) {
+      if (!running) return;
+      const dt = Math.min((t - last) / 1000, 0.033);
+      last = t;
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    function startGame() {
+      reset();
+      startScreen.classList.add("hidden");
+      overScreen.classList.add("hidden");
+      running = true;
+      last = performance.now();
+      requestAnimationFrame(loop);
+    }
+
+    function endGame() {
+      running = false;
+      saveBest();
+      finalScore.textContent = score;
+      bestScore.textContent = best();
+      overScreen.classList.remove("hidden");
+    }
+
+    function pointerToX(clientX) {
+      const rect = wrap.getBoundingClientRect();
+      basketX = (clientX - rect.left) / rect.width;
+      basketX = Math.max(0.12, Math.min(0.88, basketX));
+    }
+
+    window.addEventListener("resize", resize);
+    resize();
+    bestScore.textContent = best();
+    drawGrass();
+    drawBasket();
+
+    document.getElementById("startBtn").onclick = startGame;
+    document.getElementById("againBtn").onclick = startGame;
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keys.left = true;
+      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") keys.right = true;
+      if ((e.key === "Enter" || e.key === " ") && !running) startGame();
+    });
+    window.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keys.left = false;
+      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") keys.right = false;
+    });
+
+    wrap.addEventListener("pointerdown", (e) => {
+      pointerToX(e.clientX);
+    });
+    wrap.addEventListener("pointermove", (e) => {
+      if (e.buttons || e.pointerType === "touch") pointerToX(e.clientX);
+    });
+  </script>
+</body>
+</html>
